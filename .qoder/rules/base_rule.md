@@ -8,11 +8,11 @@ alwaysApply: true
 ## 项目环境
 - JDK版本: 21
 - 请确保所有代码使用JDK 21的特性和语法
+- 不使用预览特性
 - 在编写代码时，优先考虑使用JDK 21的新特性，如：
   - Virtual Threads (虚拟线程)
   - Pattern Matching for switch
   - Record Patterns
-  - String Templates (预览特性)
   - Sequenced Collections
 
 ## 编码规范
@@ -30,7 +30,8 @@ alwaysApply: true
 
 
 ## 代码简化工具
-- 使用Lombok简化Java代码
+
+- 使用Lombok简化Java代码（确保使用1.18.36或更高版本以完全支持JDK 21）
   - 使用@Data、@Builder等注解减少样板代码
   - 使用@Slf4j进行日志记录
   - 使用@RequiredArgsConstructor进行依赖注入
