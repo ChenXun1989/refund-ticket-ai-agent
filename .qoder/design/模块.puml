@@ -1,0 +1,28 @@
+@startuml 系统模块关系图
+
+' 定义模块
+node "refund-ticket-boot" as boot {
+    
+}
+
+node "refund-ticket-application" as application{
+    
+}
+
+node "refund-ticket-service"  as service {
+}
+
+node "refund-ticket-infra"  as infra {
+}
+
+node "refund-ticket-intergration" as intergration {
+  
+}
+
+' 定义关系
+service --> application
+infra --> service
+intergration --> service
+application --> boot
+
+@enduml

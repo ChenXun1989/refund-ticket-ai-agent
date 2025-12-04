@@ -1,0 +1,36 @@
+spring:
+  application:
+    name: refund-ticket-ai-agent
+  
+  # Spring AI Alibaba 配置
+  ai:
+    alibaba:
+      api-key: ${AI_API_KEY:your-api-key-here}
+      # 使用通义千问模型
+      chat:
+        options:
+          model: qwen-plus
+          temperature: 0.7
+          top-p: 0.9
+
+server:
+  port: 8080
+  shutdown: graceful
+
+# Actuator 配置
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info,metrics
+  endpoint:
+    health:
+      show-details: when-authorized
+
+# 日志配置
+logging:
+  level:
+    root: INFO
+    com.refundticket: DEBUG
+  pattern:
+    console: "%d{yyyy-MM-dd HH:mm:ss.SSS} [%thread] %-5level %logger{36} - %msg%n"
