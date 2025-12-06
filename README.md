@@ -432,5 +432,8 @@ Apache License 2.0
 ChenXun - chenxun@example.com
 
 ---
+## 社群
+![IMG_0223.JPG](IMG_0223.JPG)   
+
 
 **最后更新**: 2025-12-06
