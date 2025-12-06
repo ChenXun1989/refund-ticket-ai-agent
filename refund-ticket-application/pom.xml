@@ -37,10 +37,13 @@
         </dependency>
 
         <!-- Spring AI Alibaba -->
+        <!-- 注意：spring-ai-alibaba-starter 不存在，应使用具体的 starter，如 spring-ai-alibaba-starter-dashscope -->
+        <!--
         <dependency>
             <groupId>com.alibaba.cloud.ai</groupId>
             <artifactId>spring-ai-alibaba-starter</artifactId>
         </dependency>
+        -->
 
         <!-- Jakarta Validation -->
         <dependency>

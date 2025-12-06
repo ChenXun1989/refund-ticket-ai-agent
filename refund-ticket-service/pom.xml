@@ -18,11 +18,19 @@
     <description>服务层模块 - 核心业务逻辑</description>
 
     <dependencies>
+
+        <dependency>
+            <groupId>wiki.chenxun</groupId>
+            <artifactId>refund-ticket-infra</artifactId>
+        </dependency>
+
         <!-- Spring Context -->
         <dependency>
             <groupId>org.springframework</groupId>
             <artifactId>spring-context</artifactId>
         </dependency>
+
+
 
         <!-- SLF4J API -->
         <dependency>
@@ -43,6 +51,12 @@
             <scope>provided</scope>
         </dependency>
 
+        <!-- MapStruct -->
+        <dependency>
+            <groupId>org.mapstruct</groupId>
+            <artifactId>mapstruct</artifactId>
+        </dependency>
+
         <!-- Commons Lang3 -->
         <dependency>
             <groupId>org.apache.commons</groupId>
@@ -54,5 +68,23 @@
             <groupId>com.google.guava</groupId>
             <artifactId>guava</artifactId>
         </dependency>
+
+        <dependency>
+            <groupId>com.alibaba.cloud.ai</groupId>
+            <artifactId>spring-ai-alibaba-agent-framework</artifactId>
+        </dependency>
+
+        <dependency>
+            <groupId>com.alibaba.cloud.ai</groupId>
+            <artifactId>spring-ai-alibaba-starter-dashscope</artifactId>
+        </dependency>
+
+        <dependency>
+            <groupId>com.alibaba.cloud.ai</groupId>
+            <artifactId>spring-ai-alibaba-studio</artifactId>
+        </dependency>
+
+
+
     </dependencies>
 </project>

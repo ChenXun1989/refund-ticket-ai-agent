@@ -5,8 +5,11 @@ import com.baomidou.mybatisplus.annotation.TableId;
 import com.baomidou.mybatisplus.annotation.TableName;
 import lombok.*;
 
+import java.math.BigDecimal;
+import java.time.LocalDateTime;
+
 /**
- * 退票记录持久化实体
+ * 购票记录实体类
  *
  * @author refund-ticket
  */
@@ -15,8 +18,8 @@ import lombok.*;
 @NoArgsConstructor
 @AllArgsConstructor
 @EqualsAndHashCode(callSuper = true)
-@TableName("refund_ticket")
-public class RefundTicketEntity extends BaseEntity {
+@TableName("buy_ticket")
+public class BuyTicketEntity extends BaseEntity {
 
     /**
      * 主键ID
@@ -27,11 +30,6 @@ public class RefundTicketEntity extends BaseEntity {
     /**
      * 购票编号
      */
-    private String buyTicketCode;
-
-    /**
-     * 退票编号
-     */
     private String code;
 
     /**
@@ -40,7 +38,22 @@ public class RefundTicketEntity extends BaseEntity {
     private String userName;
 
     /**
-     * 退票状态
+     * 票价
      */
-    private RefundTicketStatus status;
+    private BigDecimal ticketPrice;
+
+    /**
+     * 影院名称
+     */
+    private String cinemaName;
+
+    /**
+     * 电影名称
+     */
+    private String movieName;
+
+    /**
+     * 购票时间
+     */
+    private LocalDateTime ticketTime;
 }

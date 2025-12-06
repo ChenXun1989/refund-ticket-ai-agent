@@ -17,22 +17,22 @@ public class RefundTicket {
     /**
      * 退票ID
      */
-    private String id;
+    private Long id;
 
     /**
-     * 订单号
+     * 购票编号
      */
-    private String orderNo;
+    private String buyTicketCode;
 
     /**
-     * 用户ID
+     * 退票编号
      */
-    private String userId;
+    private String code;
 
     /**
-     * 退票原因
+     * 用户名
      */
-    private String reason;
+    private String userName;
 
     /**
      * 退票状态
@@ -42,12 +42,12 @@ public class RefundTicket {
     /**
      * 创建时间
      */
-    private LocalDateTime createdAt;
+    private LocalDateTime createTime;
 
     /**
      * 更新时间
      */
-    private LocalDateTime updatedAt;
+    private LocalDateTime updateTime;
 
     /**
      * 退票状态枚举
@@ -64,9 +64,9 @@ public class RefundTicket {
         PROCESSING,
         
         /**
-         * 已完成
+         * 已通过
          */
-        COMPLETED,
+        APPROVED,
         
         /**
          * 已拒绝

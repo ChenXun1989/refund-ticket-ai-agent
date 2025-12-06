@@ -18,16 +18,11 @@
     <description>基础设施层模块 - 数据持久化和外部服务</description>
 
     <dependencies>
-        <!-- 依赖 service 模块 -->
-        <dependency>
-            <groupId>wiki.chenxun</groupId>
-            <artifactId>refund-ticket-service</artifactId>
-        </dependency>
 
-        <!-- Spring Boot Starter Data JPA -->
+        <!-- MyBatis Plus Spring Boot Starter -->
         <dependency>
-            <groupId>org.springframework.boot</groupId>
-            <artifactId>spring-boot-starter-data-jpa</artifactId>
+            <groupId>com.baomidou</groupId>
+            <artifactId>mybatis-plus-spring-boot3-starter</artifactId>
         </dependency>
 
         <!-- H2 Database (开发环境) -->

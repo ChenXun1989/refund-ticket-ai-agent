@@ -1,0 +1,211 @@
+# 退票AI智能体系统 - 数据库结构文档
+
+## 数据库基本信息
+- 数据库名称: refund_ticket
+- 字符集: utf8mb4
+- 排序规则: utf8mb4_unicode_ci
+- 数据库引擎: InnoDB
+
+---
+
+## 表结构说明
+
+### 1. 购票记录表 (buy_ticket)
+
+**表名**: buy_ticket
+**用途**: 存储用户购买电影票的完整记录信息
+**引擎**: InnoDB
+**字符集**: utf8mb4
+
+#### 字段详情:
+
+| 字段名 | 数据类型 | 约束 | 说明 |
+|--------|---------|------|------|
+| id | BIGINT | PRIMARY KEY, AUTO_INCREMENT | 主键ID，自动递增 |
+| code | VARCHAR(64) | NOT NULL, UNIQUE | 购票编号，唯一标识一次购票 |
+| user_name | VARCHAR(100) | NOT NULL | 用户名，购票人姓名 |
+| ticket_price | DECIMAL(10, 2) | NOT NULL | 票价，精确到分 |
+| cinema_name | VARCHAR(200) | NOT NULL | 影院名称，包含具体门店信息 |
+| movie_name | VARCHAR(200) | NOT NULL | 电影名称 |
+| ticket_time | DATETIME | NOT NULL | 购票时间，用户实际购票的时间戳 |
+| create_time | DATETIME | NOT NULL, DEFAULT CURRENT_TIMESTAMP | 记录创建时间，自动生成 |
+| update_time | DATETIME | NOT NULL, DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP | 记录更新时间，自动维护 |
+
+#### 索引信息:
+- **主键索引**: id
+- **唯一索引**: uk_code (code) - 确保购票编号唯一
+- **普通索引**: idx_user_name (user_name) - 提升按用户查询性能
+- **普通索引**: idx_ticket_time (ticket_time) - 提升按时间查询性能
+
+#### 业务规则:
+1. 购票编号(code)格式: BT + 日期 + 序号，例如 BT20231201001
+2. 票价(ticket_price)为正数，精确到小数点后2位
+3. 影院名称(cinema_name)包含影院品牌和具体门店位置
+4. 购票时间(ticket_time)记录用户下单购票的时刻
+
+#### 测试数据示例:
+```
+购票编号: BT20231201001
+用户名: 张三
+票价: 58.00元
+影院: 万达影城(王府井店)
+电影: 长津湖之水门桥
+购票时间: 2023-12-01 14:30:00
+```
+
+---
+
+### 2. 退票记录表 (refund_ticket)
+
+**表名**: refund_ticket
+**用途**: 存储用户退票申请及处理状态信息
+**引擎**: InnoDB
+**字符集**: utf8mb4
+
+#### 字段详情:
+
+| 字段名 | 数据类型 | 约束 | 说明 |
+|--------|---------|------|------|
+| id | BIGINT | PRIMARY KEY, AUTO_INCREMENT | 主键ID，自动递增 |
+| buy_ticket_code | VARCHAR(64) | NOT NULL | 关联的购票编号，外键关联buy_ticket表 |
+| code | VARCHAR(64) | NOT NULL, UNIQUE | 退票编号，唯一标识一次退票申请 |
+| user_name | VARCHAR(100) | NOT NULL | 用户名，申请退票的用户姓名 |
+| status | VARCHAR(20) | NOT NULL | 退票状态，见下方状态说明 |
+| create_time | DATETIME | NOT NULL, DEFAULT CURRENT_TIMESTAMP | 记录创建时间，退票申请提交时间 |
+| update_time | DATETIME | NOT NULL, DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP | 记录更新时间，状态变更时自动更新 |
+
+#### 退票状态(status)枚举值:
+- **PENDING**: 待处理 - 退票申请已提交，等待系统处理
+- **PROCESSING**: 处理中 - 系统正在处理退票申请
+- **APPROVED**: 已通过 - 退票申请已批准，退款将原路返回
+- **REJECTED**: 已拒绝 - 退票申请被拒绝，不符合退票条件
+
+#### 索引信息:
+- **主键索引**: id
+- **唯一索引**: uk_code (code) - 确保退票编号唯一
+- **普通索引**: idx_buy_ticket_code (buy_ticket_code) - 提升关联购票记录查询性能
+- **普通索引**: idx_user_name (user_name) - 提升按用户查询性能
+- **普通索引**: idx_status (status) - 提升按状态查询性能
+
+#### 业务规则:
+1. 退票编号(code)格式: RT + 日期 + 序号，例如 RT20231201001
+2. buy_ticket_code必须对应buy_ticket表中的有效购票编号
+3. 同一个购票编号可以有多次退票申请记录
+4. status状态流转: PENDING -> PROCESSING -> APPROVED/REJECTED
+5. user_name应与对应购票记录中的用户名一致
+
+#### 测试数据示例:
+```
+退票编号: RT20231201001
+购票编号: BT20231201001
+用户名: 张三
+状态: PENDING(待处理)
+创建时间: 2023-12-01 15:00:00
+```
+
+---
+
+## 表关系说明
+
+### 主要关联关系:
+- **refund_ticket.buy_ticket_code** 关联 **buy_ticket.code**
+- 一对多关系: 一条购票记录(buy_ticket)可以对应多条退票记录(refund_ticket)
+
+### 数据完整性:
+- 购票记录是退票的前置条件
+- 退票记录通过buy_ticket_code字段关联到具体的购票记录
+- 删除购票记录前需要先处理相关的退票记录
+
+---
+
+## 常见查询场景
+
+### 场景1: 查询用户的所有购票记录
+```
+目的: 获取指定用户的购票历史
+查询条件: user_name = '张三'
+涉及表: buy_ticket
+索引优化: 使用idx_user_name索引
+```
+
+### 场景2: 查询待处理的退票申请
+```
+目的: 获取所有待处理的退票申请
+查询条件: status = 'PENDING'
+涉及表: refund_ticket
+索引优化: 使用idx_status索引
+```
+
+### 场景3: 查询用户的退票历史及对应购票信息
+```
+目的: 获取用户的完整退票记录，包含原购票详情
+查询条件: user_name = '张三'
+涉及表: refund_ticket JOIN buy_ticket
+关联条件: refund_ticket.buy_ticket_code = buy_ticket.code
+索引优化: 使用idx_user_name和idx_buy_ticket_code索引
+```
+
+### 场景4: 按时间范围查询购票记录
+```
+目的: 获取指定时间段内的购票记录
+查询条件: ticket_time BETWEEN '2023-12-01' AND '2023-12-31'
+涉及表: buy_ticket
+索引优化: 使用idx_ticket_time索引
+```
+
+---
+
+## AI处理建议
+
+### 数据识别要点:
+1. **购票编号识别**: 以"BT"开头的编号为购票编号
+2. **退票编号识别**: 以"RT"开头的编号为退票编号
+3. **状态判断**: 根据status字段值判断退票处理进度
+4. **时间关联**: create_time记录创建时间，update_time记录最后修改时间
+
+### 业务逻辑理解:
+1. 退票必须基于有效的购票记录
+2. 退票状态有明确的生命周期: 待处理 -> 处理中 -> 已通过/已拒绝
+3. 同一购票可能有多次退票申请(例如部分退票、重复申请等)
+4. user_name字段在两个表中应保持一致性
+
+### 数据验证规则:
+1. 购票编号和退票编号必须唯一
+2. 票价必须为正数
+3. 退票的buy_ticket_code必须在buy_ticket表中存在
+4. status只能是四个枚举值之一
+5. 时间字段应符合DATETIME格式
+
+---
+
+## 数据库设计特点
+
+### 优点:
+1. **字符集支持**: 使用utf8mb4支持emoji和特殊字符
+2. **时间自动维护**: create_time和update_time自动维护，减少人工错误
+3. **索引优化**: 针对常见查询场景建立了合理的索引
+4. **数据完整性**: 通过唯一索引保证编号唯一性
+5. **注释完整**: 每个字段都有详细的中文注释
+
+### 扩展性考虑:
+1. 主键使用BIGINT支持大数据量
+2. VARCHAR长度预留充足空间
+3. DECIMAL精度适合金额计算
+4. 状态字段使用VARCHAR便于扩展新状态
+
+---
+
+## 测试数据说明
+
+系统预置了3条购票记录和2条退票记录用于测试:
+
+**购票记录**:
+1. 张三 - 万达影城 - 长津湖之水门桥 - 58元
+2.李四 - 大地影院 - 流浪地球2 - 68元
+3. 王五 - 博纳国际影城 - 满江红 - 48元
+
+**退票记录**:
+1. 张三的退票申请(BT20231201001) - 待处理
+2. 李四的退票申请(BT20231201002) - 处理中
+
+这些测试数据可用于验证系统的基本功能和查询逻辑。

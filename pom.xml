@@ -39,10 +39,14 @@
         <lombok.version>1.18.42</lombok.version>
         <mapstruct.version>1.6.2</mapstruct.version>
         
+        <!-- MyBatis Plus -->
+        <mybatis-plus.version>3.5.9</mybatis-plus.version>
+        
         <!-- 其他依赖 -->
         <jakarta.validation.version>3.1.0</jakarta.validation.version>
         <commons-lang3.version>3.17.0</commons-lang3.version>
         <guava.version>33.3.1-jre</guava.version>
+        <knife4j.version>4.5.0</knife4j.version>
         
         <!-- 插件版本 -->
         <maven-compiler-plugin.version>3.13.0</maven-compiler-plugin.version>
@@ -51,6 +55,9 @@
 
     <dependencyManagement>
         <dependencies>
+
+
+
             <!-- Spring Boot BOM -->
             <dependency>
                 <groupId>org.springframework.boot</groupId>
@@ -69,12 +76,30 @@
                 <scope>import</scope>
             </dependency>
 
-            <!-- Spring AI Alibaba Starter -->
+            <dependency>
+                <groupId>com.alibaba.cloud.ai</groupId>
+                <artifactId>spring-ai-alibaba-starter-dashscope</artifactId>
+                <version>${spring-ai-alibaba.version}</version>
+            </dependency>
+
+            <dependency>
+                <groupId>com.alibaba.cloud.ai</groupId>
+                <artifactId>spring-ai-alibaba-studio</artifactId>
+                <version>${spring-ai-alibaba.version}</version>
+            </dependency>
+
             <dependency>
                 <groupId>com.alibaba.cloud.ai</groupId>
                 <artifactId>spring-ai-alibaba-starter</artifactId>
-                <version>1.0.0-M6.1</version>
+                <version>${spring-ai-alibaba.version}</version>
             </dependency>
+
+            <dependency>
+                <groupId>com.alibaba.cloud.ai</groupId>
+                <artifactId>spring-ai-alibaba-agent-framework</artifactId>
+                <version>${spring-ai-alibaba.version}</version>
+            </dependency>
+
 
             <!-- 项目内部模块 -->
             <dependency>
@@ -113,6 +138,13 @@
                 <version>${mapstruct.version}</version>
             </dependency>
 
+            <!-- MyBatis Plus -->
+            <dependency>
+                <groupId>com.baomidou</groupId>
+                <artifactId>mybatis-plus-spring-boot3-starter</artifactId>
+                <version>${mybatis-plus.version}</version>
+            </dependency>
+
             <!-- Jakarta Validation -->
             <dependency>
                 <groupId>jakarta.validation</groupId>
@@ -132,6 +164,13 @@
                 <groupId>com.google.guava</groupId>
                 <artifactId>guava</artifactId>
                 <version>${guava.version}</version>
+            </dependency>
+
+            <!-- Knife4j OpenAPI 3 -->
+            <dependency>
+                <groupId>com.github.xiaoymin</groupId>
+                <artifactId>knife4j-openapi3-jakarta-spring-boot-starter</artifactId>
+                <version>${knife4j.version}</version>
             </dependency>
 
             <!-- 统一依赖版本，解决冲突 -->
@@ -174,6 +213,48 @@
                 <groupId>com.squareup.okhttp3</groupId>
                 <artifactId>okhttp</artifactId>
                 <version>4.12.0</version>
+            </dependency>
+
+            <!-- CheckerQual - 解决版本冲突 -->
+            <dependency>
+                <groupId>org.checkerframework</groupId>
+                <artifactId>checker-qual</artifactId>
+                <version>3.43.0</version>
+            </dependency>
+
+            <!-- MCP JSON Jackson2 - 解决版本冲突 -->
+            <dependency>
+                <groupId>io.modelcontextprotocol.sdk</groupId>
+                <artifactId>mcp-json-jackson2</artifactId>
+                <version>0.15.0</version>
+            </dependency>
+
+            <!-- MCP JSON - 解决版本冲突 -->
+            <dependency>
+                <groupId>io.modelcontextprotocol.sdk</groupId>
+                <artifactId>mcp-json</artifactId>
+                <version>0.15.0</version>
+            </dependency>
+
+            <!-- MCP Core - 解决版本冲突 -->
+            <dependency>
+                <groupId>io.modelcontextprotocol.sdk</groupId>
+                <artifactId>mcp-core</artifactId>
+                <version>0.15.0</version>
+            </dependency>
+
+            <!-- MCP SDK - 解决版本冲突 -->
+            <dependency>
+                <groupId>io.modelcontextprotocol.sdk</groupId>
+                <artifactId>mcp</artifactId>
+                <version>0.15.0</version>
+            </dependency>
+
+            <!-- Swagger Annotations Jakarta - 解决版本冲突 -->
+            <dependency>
+                <groupId>io.swagger.core.v3</groupId>
+                <artifactId>swagger-annotations-jakarta</artifactId>
+                <version>2.2.30</version>
             </dependency>
         </dependencies>
     </dependencyManagement>

@@ -14,7 +14,7 @@ import java.net.UnknownHostException;
  * @author refund-ticket
  */
 @Slf4j
-@SpringBootApplication
+@SpringBootApplication(scanBasePackages = {"wiki.chenxun.refund.ticket.ai.agent"})
 public class RefundTicketApplication {
 
     public static void main(String[] args) throws UnknownHostException {

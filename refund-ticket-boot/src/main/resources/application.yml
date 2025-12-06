@@ -4,14 +4,46 @@ spring:
   
   # Spring AI Alibaba 配置
   ai:
-    alibaba:
-      api-key: ${AI_API_KEY:your-api-key-here}
+    dashscope:
+      api-key: sk-d8283c5433434698a7ca0edc01c806a6
       # 使用通义千问模型
       chat:
         options:
           model: qwen-plus
           temperature: 0.7
           top-p: 0.9
+  
+  # 数据源配置
+  datasource:
+    url: jdbc:mysql://localhost:3306/refund_ticket?useUnicode=true&useSSL=false&serverTimezone=Asia/Shanghai&allowPublicKeyRetrieval=true
+    driver-class-name: com.mysql.cj.jdbc.Driver
+    username: root
+    password:
+
+
+# MyBatis Plus 配置
+mybatis-plus:
+  # Mapper XML 文件位置
+  mapper-locations: classpath*:/mapper/**/*.xml
+  # 实体扫描包
+  type-aliases-package: wiki.chenxun.refund.ticket.ai.agent.infra.persistence.entity
+  # 全局配置
+  global-config:
+    db-config:
+      # 主键类型
+      id-type: auto
+      # 逻辑删除字段
+      logic-delete-field: deleted
+      # 逻辑删除值
+      logic-delete-value: 1
+      # 逻辑未删除值
+      logic-not-delete-value: 0
+  # 配置
+  configuration:
+    # 驼峰命名转换
+    map-underscore-to-camel-case: true
+    # 日志输出
+    log-impl: org.apache.ibatis.logging.slf4j.Slf4jImpl
 
 server:
   port: 8080
@@ -34,3 +66,26 @@ logging:
     com.refundticket: DEBUG
   pattern:
     console: "%d{yyyy-MM-dd HH:mm:ss.SSS} [%thread] %-5level %logger{36} - %msg%n"
+
+# Knife4j 配置
+knife4j:
+  enable: true
+  setting:
+    language: zh_cn
+    enable-swagger-models: true
+    enable-footer: false
+    enable-footer-custom: true
+    footer-custom-content: Copyright © 2025 LBX MPS AI Agent
+  cors: true
+
+springdoc:
+  api-docs:
+    enabled: true
+    path: /v3/api-docs
+  swagger-ui:
+    enabled: true
+    path: /swagger-ui.html
+  group-configs:
+    - group: 'default'
+      paths-to-match: '/**'
+      packages-to-scan: wiki.chenxun.refund.ticket.ai.agent.application.controller

@@ -1,0 +1,37 @@
+@startuml
+
+
+class BuyTicket extends BaseEntity {
+  +Long id  
+  +String code
+  +String userName
+  +BigDecimal ticketPrice 
+  +String cinemaName
+  +String movieName
+  +LocalDateTime ticketTime
+}
+
+enum RefundTicketStatus {
+  +PENDING
+  +PROCESSING
+  +APPROVED
+  +REJECTED
+}
+
+class RefundTicket extends BaseEntity {
+  +Long id  
+  +String buyTicketCode
+  +String code
+  +String userName
+  +RefundTicketStatus status
+}
+
+abstract class BaseEntity{
+  +LocalDateTime createTime
+  +LocalDateTime updateTime
+}
+
+RefundTicketStatus --> RefundTicket
+
+
+@enduml
