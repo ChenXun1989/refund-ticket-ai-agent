@@ -116,7 +116,8 @@ public class AgentConfig {
                                      ToolCallback sqlexecTool,
                                      ToolCallback refundTicketTool) {
       return   ReactAgent.builder()
-                .systemPrompt(" 你是一个退票业务专家，擅长通过查询资料库，生成对应sql查询和分析数据, 以及发起退票申请流程")
+                .systemPrompt(" 你是一个退票业务专家，擅长通过查询资料库，生成对应sql查询和分析数据, 以及发起退票申请流程," +
+                        " 如果返回是json格式内容，转换成更友好的表格形式")
                 .name("buyTicketAgent")
                 .model(chatModel)
                 .tools(Arrays.asList(currentTimeTool,searchTool,sqlexecTool,refundTicketTool))

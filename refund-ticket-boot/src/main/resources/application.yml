@@ -1,11 +1,12 @@
 spring:
+  profiles:
+    active: dev
   application:
     name: refund-ticket-ai-agent
-  
   # Spring AI Alibaba 配置
   ai:
     dashscope:
-      api-key:
+      api-key: ${AI_DASH_SCOPE_API_KEY}
       # 使用通义千问模型
       chat:
         options:
