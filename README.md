@@ -178,9 +178,8 @@ java -jar refund-ticket-boot-1.0.0-SNAPSHOT.jar
 ```
 
 应用启动后，访问以下地址：
-
+- **AI智能体**: http://localhost:8080/chatui/index.html
 - **API 文档**: http://localhost:8080/doc.html（Knife4j 界面）
-- **Swagger UI**: http://localhost:8080/swagger-ui.html
 - **健康检查**: http://localhost:8080/actuator/health
 - **应用信息**: http://localhost:8080/actuator/info
 
