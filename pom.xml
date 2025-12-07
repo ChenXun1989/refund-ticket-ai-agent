@@ -34,10 +34,13 @@
         
         <!-- Spring AI Alibaba -->
         <spring-ai-alibaba.version>1.1.0.0-M5</spring-ai-alibaba.version>
+        <!-- Spring AI -->
+        <spring-ai.version>1.1.0-M4</spring-ai.version>
         
         <!-- Lombok & MapStruct -->
         <lombok.version>1.18.42</lombok.version>
         <mapstruct.version>1.6.2</mapstruct.version>
+        <lombok-mapstruct-binding.version>0.2.0</lombok-mapstruct-binding.version>
         
         <!-- MyBatis Plus -->
         <mybatis-plus.version>3.5.9</mybatis-plus.version>
@@ -63,6 +66,15 @@
                 <groupId>org.springframework.boot</groupId>
                 <artifactId>spring-boot-dependencies</artifactId>
                 <version>${spring-boot.version}</version>
+                <type>pom</type>
+                <scope>import</scope>
+            </dependency>
+
+            <!-- Spring AI BOM (官方 Spring AI，固定 1.1.0-RC1，避免被 Spring AI Alibaba BOM 覆盖) -->
+            <dependency>
+                <groupId>org.springframework.ai</groupId>
+                <artifactId>spring-ai-bom</artifactId>
+                <version>${spring-ai.version}</version>
                 <type>pom</type>
                 <scope>import</scope>
             </dependency>
@@ -142,6 +154,13 @@
                 <groupId>org.mapstruct</groupId>
                 <artifactId>mapstruct-processor</artifactId>
                 <version>${mapstruct.version}</version>
+            </dependency>
+            
+            <!-- Lombok MapStruct Binding -->
+            <dependency>
+                <groupId>org.projectlombok</groupId>
+                <artifactId>lombok-mapstruct-binding</artifactId>
+                <version>${lombok-mapstruct-binding.version}</version>
             </dependency>
 
             <!-- MyBatis Plus -->
@@ -288,6 +307,12 @@
                                 <artifactId>mapstruct-processor</artifactId>
                                 <version>${mapstruct.version}</version>
                             </path>
+                            <!-- Lombok MapStruct Binding: 必须放在最后 -->
+                            <path>
+                                <groupId>org.projectlombok</groupId>
+                                <artifactId>lombok-mapstruct-binding</artifactId>
+                                <version>${lombok-mapstruct-binding.version}</version>
+                            </path>
                         </annotationProcessorPaths>
                         <compilerArgs>
                             <arg>-parameters</arg>
@@ -358,6 +383,12 @@
                             <groupId>org.mapstruct</groupId>
                             <artifactId>mapstruct-processor</artifactId>
                             <version>${mapstruct.version}</version>
+                        </path>
+                        <!-- Lombok MapStruct Binding: 必须放在最后 -->
+                        <path>
+                            <groupId>org.projectlombok</groupId>
+                            <artifactId>lombok-mapstruct-binding</artifactId>
+                            <version>${lombok-mapstruct-binding.version}</version>
                         </path>
                     </annotationProcessorPaths>
                     <compilerArgs>

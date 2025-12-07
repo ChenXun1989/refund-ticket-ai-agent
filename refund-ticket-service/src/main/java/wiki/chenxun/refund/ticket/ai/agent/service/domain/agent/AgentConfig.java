@@ -14,6 +14,7 @@ import com.alibaba.cloud.ai.graph.checkpoint.savers.MemorySaver;
 import com.alibaba.cloud.ai.graph.exception.GraphStateException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import jakarta.annotation.PostConstruct;
+import lombok.Data;
 import lombok.extern.slf4j.Slf4j;
 import org.jetbrains.annotations.NotNull;
 import org.springframework.ai.chat.model.ChatModel;
@@ -28,6 +29,7 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.core.io.ClassPathResource;
 import org.springframework.core.io.Resource;
+import wiki.chenxun.refund.ticket.ai.agent.service.domain.model.BuyTicket;
 import wiki.chenxun.refund.ticket.ai.agent.service.domain.service.RefundTicketDomainService;
 
 import javax.sql.DataSource;
@@ -101,7 +103,7 @@ public class AgentConfig {
 
         return FunctionToolCallback
                 .builder("sqlexecTool",sqlexecTool)
-                .description("执行sql语句，返回结果,结果是json格式")
+                .description("执行sql语句，返回结果,结果是json格式 ，只支持查询sql")
                 .inputType(String.class)
                 .build();
     }
@@ -146,19 +148,41 @@ public class AgentConfig {
     public ReactAgent buyTicketAgent(ChatModel chatModel,ToolCallback currentTimeTool,
                                      ToolCallback  searchTool,
                                      ToolCallback sqlexecTool,
-                                     ToolCallback refundTicketTool,
-                                     ModelInterceptor customTodoInterceptor,
-                                     HumanInTheLoopHook humanInTheLoopHook) {
+                                     ModelInterceptor customTodoInterceptor) {
 
       return   ReactAgent.builder()
-                .systemPrompt(" 你是一个退票业务专家，获取当前时间, 擅长通过查询资料库，生成对应sql查询和分析数据, 以及发起退票申请流程 " )
+                .systemPrompt("你是一个退票业务专家，擅长通过查询资料库，生成对应sql查询和分析数据, 以及发起退票申请流程," +
+                        " 如果返回是json格式内容，转换成更友好的表格形式 ")
                 .name("buyTicketAgent")
                 .model(chatModel)
-                 .tools(currentTimeTool,searchTool,sqlexecTool,refundTicketTool)
+                 .tools(currentTimeTool,searchTool,sqlexecTool)
                 .outputKey("buyTicketOutPut")
+                .outputType(BuyTicketRes.class)
+          //       .interceptors(customTodoInterceptor)
+                .saver(new MemorySaver())
+                .build();
+    }
+    @Data
+    public static  class BuyTicketRes {
+
+        private List<BuyTicket> tickets;
+    }
+
+
+    @Bean
+    public ReactAgent refundTicketAgent(ChatModel chatModel,
+                                     ToolCallback refundTicketTool,
+                                     HumanInTheLoopHook humanInTheLoopHook) {
+
+        return   ReactAgent.builder()
+                .systemPrompt(" 你是一个退票操作员，负责发起退票申请流程 " )
+                .name("refundTicketAgent")
+                .model(chatModel)
+                .tools(refundTicketTool)
+                .outputKey("refundTicketOutPut")
                 .outputType(String.class)
                 .hooks(humanInTheLoopHook)
-          //       .interceptors(customTodoInterceptor)
+                //       .interceptors(customTodoInterceptor)
                 .saver(new MemorySaver())
                 .build();
 
@@ -166,10 +190,10 @@ public class AgentConfig {
 
 
     @Bean
-    public SequentialAgent sequentialAgent(ReactAgent buyTicketAgent) throws GraphStateException {
+    public SequentialAgent sequentialAgent(ReactAgent buyTicketAgent,ReactAgent refundTicketAgent) throws GraphStateException {
         return SequentialAgent.builder()
-                .subAgents(Arrays.asList(buyTicketAgent))
-                .description(" 客服智能体，识别用户意图，分配到对应agent")
+                .subAgents(Arrays.asList(buyTicketAgent,refundTicketAgent))
+                .description(" 客服智能体，识别用户意图，分配到对应agent处理 ")
                 .name("sequentialAgent")
                 .build();
     }
