@@ -4,14 +4,12 @@ import com.alibaba.cloud.ai.agent.studio.loader.AgentLoader;
 import com.alibaba.cloud.ai.dashscope.embedding.DashScopeEmbeddingModel;
 import com.alibaba.cloud.ai.graph.agent.BaseAgent;
 import com.alibaba.cloud.ai.graph.agent.ReactAgent;
-import com.alibaba.cloud.ai.graph.agent.flow.agent.SequentialAgent;
+import com.alibaba.cloud.ai.graph.agent.flow.agent.LlmRoutingAgent;
 import com.alibaba.cloud.ai.graph.agent.hook.hip.HumanInTheLoopHook;
 import com.alibaba.cloud.ai.graph.agent.hook.hip.ToolConfig;
 import com.alibaba.cloud.ai.graph.agent.interceptor.ModelInterceptor;
-import com.alibaba.cloud.ai.graph.agent.interceptor.todolist.TodoListInterceptor;
 import com.alibaba.cloud.ai.graph.agent.tools.WriteTodosTool;
 import com.alibaba.cloud.ai.graph.checkpoint.savers.MemorySaver;
-import com.alibaba.cloud.ai.graph.exception.GraphStateException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import jakarta.annotation.PostConstruct;
 import lombok.Data;
@@ -31,6 +29,9 @@ import org.springframework.core.io.ClassPathResource;
 import org.springframework.core.io.Resource;
 import wiki.chenxun.refund.ticket.ai.agent.service.domain.model.BuyTicket;
 import wiki.chenxun.refund.ticket.ai.agent.service.domain.service.RefundTicketDomainService;
+import wiki.chenxun.refund.ticket.ai.agent.service.domain.tools.SearchTool;
+import wiki.chenxun.refund.ticket.ai.agent.service.domain.tools.SqlexecTool;
+import wiki.chenxun.refund.ticket.ai.agent.service.domain.tools.dto.SqlExecToolReq;
 
 import javax.sql.DataSource;
 import java.time.LocalDateTime;
@@ -53,6 +54,12 @@ public class AgentConfig {
     public void init(){
         log.info("AgentConfig init");
     }
+
+    @Bean
+    public MemorySaver memorySaver(){
+        return new MemorySaver();
+    }
+
 
     @Bean
     public VectorStore vectorStore(DashScopeEmbeddingModel dashScopeEmbeddingModel) {
@@ -80,11 +87,25 @@ public class AgentConfig {
     public ToolCallback searchTool(VectorStore vectorStore){
         SearchTool searchTool = new SearchTool(vectorStore);
         return FunctionToolCallback.builder("searchTool", searchTool)
-                .description("搜索数据库表结构信息")
+                .description("搜索文档以查找相关数据库表结构信息")
                 .inputType(String.class)
                 .build();
     }
 
+    @Bean
+    public ReactAgent documentAgent(ChatModel chatModel,
+                                    ToolCallback  searchTool) {
+        return   ReactAgent.builder()
+                .name("documentAgent")
+                .model(chatModel)
+                .tools(searchTool)
+                .outputKey("docSearchOutPut")
+                .instruction(". 你是一个票务业务文档智能助手。当需要查找信息时，使用searchTool工具. " +
+                        " 基于检索到的信息回答用户的问题，并引用相关片段。")
+                .saver(new MemorySaver())
+                .build();
+
+    }
 
 
 
@@ -103,8 +124,8 @@ public class AgentConfig {
 
         return FunctionToolCallback
                 .builder("sqlexecTool",sqlexecTool)
+                .inputType(SqlExecToolReq.class)
                 .description("执行sql语句，返回结果,结果是json格式 ，只支持查询sql")
-                .inputType(String.class)
                 .build();
     }
 
@@ -146,22 +167,22 @@ public class AgentConfig {
 
     @Bean
     public ReactAgent buyTicketAgent(ChatModel chatModel,ToolCallback currentTimeTool,
-                                     ToolCallback  searchTool,
                                      ToolCallback sqlexecTool,
-                                     ModelInterceptor customTodoInterceptor) {
+                                     MemorySaver memorySaver) {
 
       return   ReactAgent.builder()
-                .systemPrompt("你是一个退票业务专家，擅长通过查询资料库，生成对应sql查询和分析数据, 以及发起退票申请流程," +
-                        " 如果返回是json格式内容，转换成更友好的表格形式 ")
                 .name("buyTicketAgent")
                 .model(chatModel)
-                 .tools(currentTimeTool,searchTool,sqlexecTool)
+                 .tools(currentTimeTool,sqlexecTool)
                 .outputKey("buyTicketOutPut")
                 .outputType(BuyTicketRes.class)
+                 .instruction(" 你是一个票务业务数据分析师, 擅长基于表结构信息 ，生成对应查询sql，通过工具 currentTimeTool 获取当前时间,  通过工具 sqlexecTool 执行查询语句，返回相关结构 ")
           //       .interceptors(customTodoInterceptor)
-                .saver(new MemorySaver())
+                .saver(memorySaver)
                 .build();
     }
+
+
     @Data
     public static  class BuyTicketRes {
 
@@ -172,30 +193,42 @@ public class AgentConfig {
     @Bean
     public ReactAgent refundTicketAgent(ChatModel chatModel,
                                      ToolCallback refundTicketTool,
-                                     HumanInTheLoopHook humanInTheLoopHook) {
+                                     HumanInTheLoopHook humanInTheLoopHook,
+                                        MemorySaver memorySaver) {
 
         return   ReactAgent.builder()
-                .systemPrompt(" 你是一个退票操作员，负责发起退票申请流程 " )
                 .name("refundTicketAgent")
                 .model(chatModel)
                 .tools(refundTicketTool)
+                .instruction("你是一个退票操作员， 通过工具 refundTicketTool 发起退票流程 ")
                 .outputKey("refundTicketOutPut")
                 .outputType(String.class)
                 .hooks(humanInTheLoopHook)
                 //       .interceptors(customTodoInterceptor)
-                .saver(new MemorySaver())
+                .saver(memorySaver)
                 .build();
 
     }
 
 
     @Bean
-    public SequentialAgent sequentialAgent(ReactAgent buyTicketAgent,ReactAgent refundTicketAgent) throws GraphStateException {
-        return SequentialAgent.builder()
-                .subAgents(Arrays.asList(buyTicketAgent,refundTicketAgent))
-                .description(" 客服智能体，识别用户意图，分配到对应agent处理 ")
-                .name("sequentialAgent")
+   public LlmRoutingAgent llmRoutingAgent(
+           ChatModel chatModel,
+           ReactAgent documentAgent,
+           ReactAgent buyTicketAgent,
+           MemorySaver memorySaver,
+           ReactAgent refundTicketAgent){
+
+        return LlmRoutingAgent.builder()
+                .saver(memorySaver)
+                .model(chatModel)
+                .instruction(" 你是一个票务业务专家，负责分配具体工作到合适的专项agent , 有下列专项agent" +
+                        " documentAgent 负责查询资料获取表结构数据 ，buyTicketAgent 查询购票信息 ，" +
+                        " refundTicketAgent 处理退票申请 ")
+                .name("llmRoutingAgent")
+                .subAgents(Arrays.asList(documentAgent,buyTicketAgent,refundTicketAgent))
                 .build();
+
     }
 
 
@@ -216,6 +249,7 @@ public class AgentConfig {
                 return buyTicketAgent;
             }
         };
+
     }
 
 

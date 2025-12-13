@@ -1,9 +1,12 @@
-package wiki.chenxun.refund.ticket.ai.agent.service.domain.agent;
+package wiki.chenxun.refund.ticket.ai.agent.service.domain.tools;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.AllArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.ai.chat.model.ToolContext;
+import wiki.chenxun.refund.ticket.ai.agent.service.domain.tools.dto.SqlExecToolReq;
+import wiki.chenxun.refund.ticket.ai.agent.service.domain.tools.dto.SqlExeclRes;
 
 import javax.sql.DataSource;
 import java.sql.Connection;
@@ -22,19 +25,21 @@ import java.util.function.BiFunction;
  * @version: 1.0
  * @desc
  **/
+@Slf4j
 @AllArgsConstructor
-public class SqlexecTool implements BiFunction<String, ToolContext,String> {
+public class SqlexecTool implements BiFunction<SqlExecToolReq, ToolContext, SqlExeclRes> {
 
     private ObjectMapper objectMapper;
 
     private DataSource dataSource;
 
     @Override
-    public String apply(String s, ToolContext toolContext) {
+    public SqlExeclRes apply(SqlExecToolReq s, ToolContext toolContext) {
+        log.info("SqlexecTool apply {} ",s.getQuerySql());
 
        try (Connection connection= dataSource.getConnection()){
            // 执行语句返回结果
-           ResultSet resultSet= connection.createStatement().executeQuery(s);
+           ResultSet resultSet= connection.createStatement().executeQuery(s.getQuerySql());
            
            // 解析 ResultSet 转成 JSON 字符串
            List<Map<String, Object>> resultList = new ArrayList<>();
@@ -50,8 +55,10 @@ public class SqlexecTool implements BiFunction<String, ToolContext,String> {
                }
                resultList.add(row);
            }
-           
-           return objectMapper.writeValueAsString(resultList);
+
+           SqlExeclRes sqlExeclRes = new SqlExeclRes();
+           sqlExeclRes.setJsonResult(objectMapper.writeValueAsString(resultList));
+           return sqlExeclRes;
        } catch (SQLException | JsonProcessingException e) {
            throw new RuntimeException(e);
        }

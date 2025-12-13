@@ -21,12 +21,16 @@ import com.alibaba.cloud.ai.agent.studio.dto.AgentRunRequest;
 import com.alibaba.cloud.ai.agent.studio.dto.messages.AgentRunResponse;
 import com.alibaba.cloud.ai.agent.studio.dto.messages.MessageDTO;
 import com.alibaba.cloud.ai.agent.studio.dto.messages.ToolRequestConfirmMessageDTO;
+import com.alibaba.cloud.ai.agent.studio.dto.messages.UserMessageDTO;
 import com.alibaba.cloud.ai.agent.studio.loader.AgentLoader;
+import com.alibaba.cloud.ai.graph.CompiledGraph;
 import com.alibaba.cloud.ai.graph.NodeOutput;
 import com.alibaba.cloud.ai.graph.RunnableConfig;
+import com.alibaba.cloud.ai.graph.StateGraph;
 import com.alibaba.cloud.ai.graph.action.InterruptionMetadata;
-import com.alibaba.cloud.ai.graph.agent.BaseAgent;
-import com.alibaba.cloud.ai.graph.agent.flow.agent.SequentialAgent;
+import com.alibaba.cloud.ai.graph.agent.Agent;
+
+import com.alibaba.cloud.ai.graph.agent.flow.agent.LlmRoutingAgent;
 import com.alibaba.cloud.ai.graph.exception.GraphRunnerException;
 import com.alibaba.cloud.ai.graph.streaming.StreamingOutput;
 
@@ -51,6 +55,8 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import reactor.core.publisher.Flux;
 
+import java.util.Map;
+
 /** Controller handling agent execution endpoints. */
 @RestController
 public class ExecutionController {
@@ -60,7 +66,10 @@ public class ExecutionController {
     private final AgentLoader agentLoader;
 
     @Resource
-    private SequentialAgent sequentialAgent;
+    private LlmRoutingAgent routingAgent;
+
+    @Resource
+    private CompiledGraph stateGraph;
 
     @Autowired
     public ExecutionController(AgentLoader agentLoader) {
@@ -184,7 +193,7 @@ public class ExecutionController {
                     .addMetadata("user_id", request.userId)
                     .build();
 
-            return executeAgent(request.newMessage.toUserMessage(), sequentialAgent, runnableConfig);
+            return executeAgent(request.newMessage.toUserMessage(), stateGraph, runnableConfig);
         }
         catch (Exception e) {
             log.error("Error during agent run for session {}", request.threadId, e);
@@ -245,7 +254,7 @@ public class ExecutionController {
                     .addHumanFeedback(metadataBuilder.build())
                     .build();
 
-            return executeAgent(null, sequentialAgent, runnableConfig);
+            return executeAgent(null, stateGraph, runnableConfig);
         }
         catch (Exception e) {
             log.error("Error during agent run for session {}", request.threadId, e);
@@ -254,15 +263,15 @@ public class ExecutionController {
     }
 
     @NotNull
-    private Flux<ServerSentEvent<String>> executeAgent(UserMessage userMessage, SequentialAgent agent, RunnableConfig runnableConfig) throws GraphRunnerException {
+    private Flux<ServerSentEvent<String>> executeAgent(UserMessage userMessage, CompiledGraph stateGraph, RunnableConfig runnableConfig) throws GraphRunnerException {
 
         Flux<NodeOutput> agentStream;
 
         if (userMessage != null) {
-            agentStream = agent.stream(userMessage, runnableConfig);
+            agentStream = stateGraph.stream(Map.of("userInput",userMessage), runnableConfig);
         }
         else {
-            agentStream = agent.stream("", runnableConfig);
+            agentStream = stateGraph.stream(Map.of("userInput",""), runnableConfig);
         }
 
         // Convert Flux<NodeOutput> to Flux<ServerSentEvent<String>>
@@ -297,8 +306,16 @@ public class ExecutionController {
                     }
                     else if (nodeOutput instanceof InterruptionMetadata interruptionMetadata) {
                         // Use the specialized method to convert InterruptionMetadata to ToolRequestMessageDTO
-                        ToolRequestConfirmMessageDTO toolRequestMessage = MessageDTO.MessageDTOFactory.fromInterruptionMetadata(interruptionMetadata);
-                        agentResponse = new AgentRunResponse(node, agentName, toolRequestMessage, tokenUsage, "");
+
+                       var interruptionMessage= interruptionMetadata.state().value("interruptionMessage",String.class)
+                               .orElse("");
+                       var toolRequestMessage =   UserMessage.builder().text(interruptionMessage).build();
+
+                     //   return ServerSentEvent.<String>builder()
+//                                .data(interruptionMessage)
+//                                .build();
+                    //    ToolRequestConfirmMessageDTO toolRequestMessage = MessageDTO.MessageDTOFactory.fromInterruptionMetadata(interruptionMetadata);
+                          agentResponse = new AgentRunResponse(node, "11122323", toolRequestMessage, tokenUsage, "");
                     }
                     else {
                         // Handle other NodeOutput types if necessary

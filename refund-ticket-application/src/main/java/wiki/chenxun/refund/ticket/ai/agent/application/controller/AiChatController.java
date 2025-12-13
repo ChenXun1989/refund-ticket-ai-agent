@@ -3,6 +3,7 @@ package wiki.chenxun.refund.ticket.ai.agent.application.controller;
 import com.alibaba.cloud.ai.graph.OverAllState;
 import com.alibaba.cloud.ai.graph.RunnableConfig;
 import com.alibaba.cloud.ai.graph.agent.ReactAgent;
+import com.alibaba.cloud.ai.graph.agent.flow.agent.LlmRoutingAgent;
 import com.alibaba.cloud.ai.graph.agent.flow.agent.SequentialAgent;
 import com.alibaba.cloud.ai.graph.exception.GraphRunnerException;
 import jakarta.annotation.Resource;
@@ -31,7 +32,7 @@ public class AiChatController {
     private ReactAgent reactAgent;
 
     @Resource
-    private SequentialAgent sequentialAgent;
+    private LlmRoutingAgent routingAgent;
 
     @GetMapping("/chat")
     public String chat(@RequestParam("question") String question,
@@ -39,7 +40,7 @@ public class AiChatController {
         RunnableConfig runnableConfig=RunnableConfig.builder()
                         .threadId(bizId).build();
         try {
-            Optional<OverAllState> overAllState = sequentialAgent.invoke(question,runnableConfig);
+            Optional<OverAllState> overAllState = routingAgent.invoke(question,runnableConfig);
             if(overAllState.isPresent()){
                 Optional<AssistantMessage> assistantMessage= overAllState.get().value("buyTicketOutPut", AssistantMessage.class);
                 return assistantMessage.map(AssistantMessage::getText)

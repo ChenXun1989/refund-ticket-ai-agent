@@ -20,7 +20,7 @@ public interface RefundTicketConvert {
      * @param entity 实体
      * @return 领域模型
      */
-    RefundTicket toDomain(RefundTicketEntity entity);
+    RefundTicket toDomainModel(RefundTicketEntity entity);
 
     /**
      * 领域模型转实体

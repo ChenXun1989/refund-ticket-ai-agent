@@ -20,7 +20,7 @@ public interface BuyTicketConvert {
      * @param entity 实体
      * @return 领域模型
      */
-    BuyTicket toDomain(BuyTicketEntity entity);
+    BuyTicket toDomainModel(BuyTicketEntity entity);
 
     /**
      * 领域模型转实体

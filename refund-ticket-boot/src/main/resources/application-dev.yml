@@ -5,7 +5,7 @@ spring:
   # Spring AI Alibaba 配置
   ai:
     dashscope:
-      api-key:
+      api-key: sk-d8283c5433434698a7ca0edc01c806a6
       # 使用通义千问模型
       chat:
         options:

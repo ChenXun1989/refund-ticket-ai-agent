@@ -32,6 +32,6 @@ public class BuyTicketDomainService extends ServiceImpl<BuyTicketMapper, BuyTick
         LambdaQueryWrapper<BuyTicketEntity> queryWrapper = new LambdaQueryWrapper<BuyTicketEntity>();
         queryWrapper.eq(BuyTicketEntity::getCode, code);
         BuyTicketEntity buyTicketEntity = baseMapper.selectOne(queryWrapper);
-        return Optional.ofNullable(buyTicketConvert.toDomain(buyTicketEntity));
+        return Optional.ofNullable(buyTicketConvert.toDomainModel(buyTicketEntity));
     }
 }
